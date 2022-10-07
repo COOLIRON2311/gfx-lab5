@@ -1,11 +1,14 @@
-from turtle import Turtle, Screen, done
+import turtle as t
+import tkinter as tk
+
+TURTLE_SIZE = 20
 
 
 class LSystem:
-    atom: str # алфавит
-    direction: str # направление
-    rules: dict # правило
-    angle: float # угол
+    atom: str  # алфавит
+    direction: str  # направление
+    rules: dict  # правило
+    angle: float  # угол
     n: int
 
     def __init__(self, atom: str, direction: str, rules: dict, angle: float, n: int = 1):
@@ -14,7 +17,6 @@ class LSystem:
         self.rules = rules
         self.angle = angle
         self.n = n
-
 
     @staticmethod
     def parse(s: str) -> 'LSystem':
@@ -44,34 +46,96 @@ class LSystem:
                 state = state.replace(atom, sub)
         return state
 
+
+class Plotter(t.Turtle):
+    sc: t._Screen
+    lsystem: LSystem
+    win: tk.Toplevel
+    canvas: t.TurtleScreen
+    ln: int = 10
+    x: int = 0
+    y: int = 0
+
+    def __init__(self, lsystem: LSystem):
+        self.lsystem = lsystem
+        super().__init__()
+        self.sc = t.Screen()
+        self.speed(0)
+        self.win = self.sc.getcanvas().winfo_toplevel()
+        self.bbox = tk.Frame(self.win)
+        self.button1 = tk.Button(self.bbox, text='Draw', command=self.draw, width=30)
+        self.button2 = tk.Button(self.bbox, text='Clear', command=self.clear, width=30)
+        self.scale1 = tk.Scale(self.win, from_=-2000, to=2000, orient=tk.HORIZONTAL, command=self.set_x, label='X')
+        self.scale2 = tk.Scale(self.win, from_=-2000, to=2000, orient=tk.VERTICAL, command=self.set_y, label='Y')
+        self.scale3 = tk.Scale(self.win, from_=1, to=5, orient=tk.HORIZONTAL, command=self.set_n, label='N')
+        self.scale4 = tk.Scale(self.win, from_=1, to=100, orient=tk.HORIZONTAL, command=self.set_ln, label='Zoom')
+        self.bbox.pack(side=tk.LEFT, padx=5, pady=5, fill=tk.X)
+        self.button1.pack(padx=50, pady=5)
+        self.button2.pack(padx=50, pady=5)
+        self.scale2.pack(side=tk.RIGHT)
+        self.scale1.pack(side=tk.RIGHT)
+        self.scale4.pack(side=tk.RIGHT)
+        self.scale3.pack(side=tk.RIGHT)
+        self.scale1.set(self.x)
+        self.scale2.set(self.y)
+        self.scale3.set(self.lsystem.n)
+        self.scale4.set(self.ln)
+        t.done()
+
     def draw(self):
-        t = Turtle()
-        sc = Screen()
-        t.penup()
-        t.setx(-sc.window_width() / 2 + 50)
-        t.pendown()
-        t.speed(0)
-        state = self.apply()
-        ln = 10
+        self.position()
+        state = self.lsystem.apply()
 
         for atom in state:
-            if atom == self.atom:
-                t.forward(ln)
+            if atom == self.lsystem.atom:
+                self.forward(self.ln)
             elif atom == '+':
-                t.right(self.angle)
+                self.right(self.lsystem.angle)
             elif atom == '-':
-                t.left(self.angle)
-        done()
+                self.left(self.lsystem.angle)
+
+    def position(self):
+        self.penup()
+        self.goto(self.x, self.y)
+        self.pendown()
+
+    def clear(self, *_):
+        self.reset()
+
+    def set_ln(self, value):
+        self.sc.tracer(False)
+        self.ln = int(value)
+        self.clear()
+        self.draw()
+        self.sc.tracer(True)
+
+    def set_x(self, value):
+        self.sc.tracer(False)
+        self.x = int(value)
+        self.clear()
+        self.draw()
+        self.sc.tracer(True)
+
+    def set_y(self, value):
+        self.sc.tracer(False)
+        self.y = int(value)
+        self.clear()
+        self.draw()
+        self.sc.tracer(True)
+
+    def set_n(self, value):
+        self.sc.tracer(False)
+        self.lsystem.n = int(value)
+        self.clear()
+        self.draw()
+        self.sc.tracer(True)
 
 
-a = LSystem.parse('''
-F 60 F
-F -> F-F++F-F''')
-# a = LSystem.parse('''
-# F 90 X
-# F -> F
-# X -> X+YF+
-# Y -> -FX-Y''')
-print(a)
-a.n = 2
-a.draw()
+def main():
+    with open('task1a.txt', 'r') as f:
+        lsystem = LSystem.parse(f.read())
+    Plotter(lsystem)
+
+
+if __name__ == '__main__':
+    main()
