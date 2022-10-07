@@ -39,7 +39,7 @@ class LSystem:
     @cache
     def apply(self, n: int = 1) -> str:
         # print(self, n)
-        state = list(self.axiom)
+        state = self.axiom
         for _ in range(n):
             new = []
             for letter in state:
