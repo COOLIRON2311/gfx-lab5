@@ -3,33 +3,38 @@ from task1a import LSystem, Plotter
 
 
 class TestTask1a(unittest.TestCase):
+    VISUAL = False
     def test_koch_curve(self):
         lsystem = LSystem.parse('''
             F -60 F
             F -> F-F++F-F''')
         self.assertEqual(lsystem.apply(), 'F-F++F-F')
-        Plotter(lsystem)
+        if self.VISUAL:
+            Plotter(lsystem)
 
     def test_koch_curve90(self):
         lsystem = LSystem.parse('''
             F 90 F
             F -> F+F-F-F+F''')
         self.assertEqual(lsystem.apply(), 'F+F-F-F+F')
-        Plotter(lsystem)
+        if self.VISUAL:
+            Plotter(lsystem)
 
     def test_koch_snowflake(self):
         lsystem = LSystem.parse('''
             F 60 F++F++F
             F -> F-F++F-F''')
         self.assertEqual(lsystem.apply(), 'F-F++F-F++F-F++F-F++F-F++F-F')
-        Plotter(lsystem)
+        if self.VISUAL:
+            Plotter(lsystem)
 
     def test_koch_island(self):
         lsystem = LSystem.parse('''
             F 90 F+F+F+F
             F -> F+F-F-FF+F+F-F''')
         self.assertEqual(lsystem.apply(), 'F+F-F-FF+F+F-F+F+F-F-FF+F+F-F+F+F-F-FF+F+F-F+F+F-F-FF+F+F-F')
-        Plotter(lsystem)
+        if self.VISUAL:
+            Plotter(lsystem)
 
     def test_sierpinski_triangle(self):
         lsystem = LSystem.parse('''
@@ -37,7 +42,8 @@ class TestTask1a(unittest.TestCase):
             F -> F-G+F+G-F
             G -> GG''')
         self.assertEqual(lsystem.apply(), 'F-G+F+G-F-GG-GG')
-        Plotter(lsystem)
+        if self.VISUAL:
+            Plotter(lsystem)
 
     def test_sierpinksi_arrowhead(self):
         lsystem = LSystem.parse('''
@@ -45,7 +51,8 @@ class TestTask1a(unittest.TestCase):
             X -> YF+XF+Y
             Y -> XF-YF-X''')
         self.assertEqual(lsystem.apply(), 'XF-YF-XF')
-        Plotter(lsystem)
+        if self.VISUAL:
+            Plotter(lsystem)
 
     def test_hilbert_curve(self):
         lsystem = LSystem.parse('''
@@ -54,7 +61,8 @@ class TestTask1a(unittest.TestCase):
             X -> -YF+XFX+FY-
             Y -> +XF-YFY-FX+''')
         self.assertEqual(lsystem.apply(), '-YF+XFX+FY-')
-        Plotter(lsystem)
+        if self.VISUAL:
+            Plotter(lsystem)
 
     def test_dragon_curve(self):
         lsystem = LSystem.parse('''
@@ -63,7 +71,8 @@ class TestTask1a(unittest.TestCase):
             X -> X+YF+
             Y -> -FX-Y''')
         self.assertEqual(lsystem.apply(), 'X+YF+')
-        Plotter(lsystem)
+        if self.VISUAL:
+            Plotter(lsystem)
 
     def test_gosper_curve(self):
         lsystem = LSystem.parse('''
@@ -72,4 +81,5 @@ class TestTask1a(unittest.TestCase):
             X -> X+YF++YF-FX--FXFX-YF+
             Y -> -FX+YFYF++YF+FX--FX-Y''')
         self.assertEqual(lsystem.apply(), 'X+YF++YF-FX--FXFX-YF+F')
-        Plotter(lsystem)
+        if self.VISUAL:
+            Plotter(lsystem)

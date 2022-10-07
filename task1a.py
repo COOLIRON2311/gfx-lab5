@@ -28,7 +28,6 @@ class LSystem:
             if len(rule) != 2:
                 raise ValueError('Invalid rule')
             rules.append(rule)
-        LSystem.rules = rules  # кэшируем правила
         return LSystem(atoms, axiom, rules, angle)
 
     def __str__(self) -> str:
@@ -38,14 +37,14 @@ class LSystem:
         return s
 
     @cache
-    @staticmethod
-    def __apply(axiom: str, n: int) -> str:
-        state = list(axiom)
+    def apply(self, n: int = 1) -> str:
+        # print(self, n)
+        state = list(self.axiom)
         for _ in range(n):
             new = []
             for letter in state:
                 rule_applied = False
-                for atom, sub in LSystem.rules:
+                for atom, sub in self.rules:
                     if letter == atom:
                         new.append(sub)
                         rule_applied = True
@@ -55,9 +54,6 @@ class LSystem:
 
             state = ''.join(new)
         return state
-
-    def apply(self, n: int = 1) -> str:
-        return LSystem.__apply(self.axiom, n)
 
 
 class Plotter(t.Turtle):
@@ -146,7 +142,7 @@ class Plotter(t.Turtle):
 
 
 def main():
-    with open('task1a.txt', 'r') as f:
+    with open('task1a.txt', 'r', encoding='utf8') as f:
         lsystem = LSystem.parse(f.read())
     Plotter(lsystem)
 
