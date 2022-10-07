@@ -1,2 +1,3 @@
-F -60 F
-F -> F-F++F-F
+F G 120 F-G-G
+F -> F-G+F+G-F
+G -> GG
