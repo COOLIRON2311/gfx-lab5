@@ -1,11 +1,12 @@
 import turtle as t
 import tkinter as tk
+from functools import cache
 
 
 class LSystem:
     atoms: set  # алфавит
     axiom: str  # направление
-    rules: list  # правило
+    rules: list  # правила вида A -> B
     angle: float  # угол
     n: int
 
@@ -29,6 +30,7 @@ class LSystem:
             if len(rule) != 2:
                 raise ValueError('Invalid rule')
             rules.append(rule)
+        LSystem.rules = rules  # кэшируем правила
         return LSystem(atoms, axiom, rules, angle)
 
     def __str__(self) -> str:
@@ -37,13 +39,15 @@ class LSystem:
             s += f'{key} -> {value}\n'
         return s
 
-    def apply(self) -> str:
-        state = list(self.axiom)
-        for _ in range(self.n):
+    @cache
+    @staticmethod
+    def __apply(axiom: str, n: int) -> str:
+        state = list(axiom)
+        for _ in range(n):
             new = []
             for letter in state:
                 rule_applied = False
-                for atom, sub in self.rules:
+                for atom, sub in LSystem.rules:
                     if letter == atom:
                         new.append(sub)
                         rule_applied = True
@@ -53,6 +57,9 @@ class LSystem:
 
             state = ''.join(new)
         return state
+
+    def apply(self) -> str:
+        return LSystem.__apply(self.axiom, self.n)
 
 
 class Plotter(t.Turtle):
