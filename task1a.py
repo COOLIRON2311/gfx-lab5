@@ -7,15 +7,13 @@ class LSystem:
     atoms: set  # алфавит
     axiom: str  # направление
     rules: list  # правила вида A -> B
-    angle: float  # угол
-    n: int
+    angle: float  # угол поворота в градусах
 
-    def __init__(self, atoms: set, axiom: str, rules: list, angle: float, n: int = 1):
+    def __init__(self, atoms: set, axiom: str, rules: list, angle: float):
         self.atoms = atoms
         self.axiom = axiom
         self.rules = rules
         self.angle = angle
-        self.n = n
 
     @staticmethod
     def parse(s: str) -> 'LSystem':
@@ -58,8 +56,8 @@ class LSystem:
             state = ''.join(new)
         return state
 
-    def apply(self) -> str:
-        return LSystem.__apply(self.axiom, self.n)
+    def apply(self, n: int = 1) -> str:
+        return LSystem.__apply(self.axiom, n)
 
 
 class Plotter(t.Turtle):
@@ -70,6 +68,7 @@ class Plotter(t.Turtle):
     ln: int = 10
     x: int = 0
     y: int = 0
+    n: int = 1
 
     def __init__(self, lsystem: LSystem):
         self.lsystem = lsystem
@@ -93,13 +92,13 @@ class Plotter(t.Turtle):
         self.scale3.pack(side=tk.RIGHT)
         self.scale1.set(self.x)
         self.scale2.set(self.y)
-        self.scale3.set(self.lsystem.n)
+        self.scale3.set(self.n)
         self.scale4.set(self.ln)
         t.done()
 
     def draw(self):
         self.position()
-        state = self.lsystem.apply()
+        state = self.lsystem.apply(self.n)
 
         for atom in state:
             if atom in self.lsystem.atoms:
@@ -140,7 +139,7 @@ class Plotter(t.Turtle):
 
     def set_n(self, value):
         self.sc.tracer(False)
-        self.lsystem.n = int(value)
+        self.n = int(value)
         self.clear()
         self.draw()
         self.sc.tracer(True)
