@@ -3,7 +3,7 @@ from task1a import LSystem, Plotter
 
 
 class TestTask1a(unittest.TestCase):
-    VISUAL = False
+    VISUAL = True
     def test_koch_curve(self):
         lsystem = LSystem.parse('''
             F -60 F
@@ -81,5 +81,22 @@ class TestTask1a(unittest.TestCase):
             X -> X+YF++YF-FX--FXFX-YF+
             Y -> -FX+YFYF++YF+FX--FX-Y''')
         self.assertEqual(lsystem.apply(), 'X+YF++YF-FX--FXFX-YF+F')
+        if self.VISUAL:
+            Plotter(lsystem)
+
+    def test_pushdown_tree(self):
+        lsystem = LSystem.parse('''
+            F 20 F
+            F -> F[+F]F[-F]F''')
+        self.assertEqual(lsystem.apply(), 'F[+F]F[-F]F')
+        if self.VISUAL:
+            Plotter(lsystem)
+
+    def test_pushdown_tree2(self):
+        lsystem = LSystem.parse('''
+            F 20 X
+            F ->  FF
+            X -> F[+X]F[-X]+X''')
+        self.assertEqual(lsystem.apply(), 'F[+X]F[-X]+X')
         if self.VISUAL:
             Plotter(lsystem)

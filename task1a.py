@@ -61,6 +61,7 @@ class Plotter(t.Turtle):
     lsystem: LSystem
     win: tk.Toplevel
     canvas: t.TurtleScreen
+    stack: list[tuple[float, float, float]]
     ln: int = 10
     x: int = 0
     y: int = 0
@@ -69,6 +70,7 @@ class Plotter(t.Turtle):
     def __init__(self, lsystem: LSystem):
         self.lsystem = lsystem
         super().__init__()
+        self.stack = []
         self.sc = t.Screen()
         self.speed(0)
         self.win = self.sc.getcanvas().winfo_toplevel()
@@ -103,6 +105,14 @@ class Plotter(t.Turtle):
                 self.left(self.lsystem.angle)
             elif atom == '-':
                 self.right(self.lsystem.angle)
+            elif atom == '[':
+                self.stack.append((self.xcor(), self.ycor(), self.heading()))
+            elif atom == ']':
+                x, y, h = self.stack.pop()
+                self.penup()
+                self.goto(x, y)
+                self.setheading(h)
+                self.pendown()
 
     def position(self):
         self.penup()
