@@ -1,3 +1,4 @@
+from random import randint
 import turtle as t
 import tkinter as tk
 from functools import cache
@@ -7,7 +8,7 @@ class LSystem:
     atoms: set  # алфавит
     axiom: str  # направление
     rules: list  # правила вида A -> B
-    angle: float  # угол поворота в градусах
+    angle: float | tuple  # угол поворота в градусах
 
     def __init__(self, atoms: set, axiom: str, rules: list, angle: float):
         self.atoms = atoms
@@ -20,7 +21,11 @@ class LSystem:
         lines = [i.strip() for i in s.splitlines() if i]
         header = lines[0].split(' ')
         axiom = header.pop()
-        angle = float(header.pop())
+        angle = header.pop()
+        if '..' in angle:
+            angle = tuple(map(float, angle.split('..')))
+        else:
+            angle = float(angle)
         atoms = set(header)
         rules = []
         for line in lines[1:]:
@@ -102,9 +107,17 @@ class Plotter(t.Turtle):
             if atom in self.lsystem.atoms:
                 self.forward(self.ln)
             elif atom == '+':
-                self.left(self.lsystem.angle)
+                if isinstance(self.lsystem.angle, tuple):
+                    angle = randint(*self.lsystem.angle)
+                else:
+                    angle = self.lsystem.angle
+                self.left(angle)
             elif atom == '-':
-                self.right(self.lsystem.angle)
+                if isinstance(self.lsystem.angle, tuple):
+                    angle = randint(*self.lsystem.angle)
+                else:
+                    angle = self.lsystem.angle
+                self.right(angle)
             elif atom == '[':
                 self.stack.append((self.xcor(), self.ycor(), self.heading()))
             elif atom == ']':
