@@ -62,6 +62,7 @@ class LSystem:
 
 
 class Plotter(t.Turtle):
+    ANGLE: int
     sc: t._Screen
     lsystem: LSystem
     win: tk.Toplevel
@@ -72,12 +73,13 @@ class Plotter(t.Turtle):
     y: int = 0
     n: int = 1
 
-    def __init__(self, lsystem: LSystem):
+    def __init__(self, lsystem: LSystem, angle: int = 0):
         self.lsystem = lsystem
         super().__init__()
         self.stack = []
         self.sc = t.Screen()
         self.speed(0)
+        self.ANGLE = angle
         self.win = self.sc.getcanvas().winfo_toplevel()
         self.bbox = tk.Frame(self.win)
         self.button1 = tk.Button(self.bbox, text='Draw', command=self.draw, width=30)
@@ -130,6 +132,7 @@ class Plotter(t.Turtle):
     def position(self):
         self.penup()
         self.goto(self.x, self.y)
+        self.setheading(self.ANGLE)
         self.pendown()
 
     def clear(self, *_):

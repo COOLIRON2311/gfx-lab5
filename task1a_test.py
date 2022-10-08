@@ -90,7 +90,7 @@ class TestTask1a(unittest.TestCase):
             F -> F[+F]F[-F]F''')
         self.assertEqual(lsystem.apply(), 'F[+F]F[-F]F')
         if self.VISUAL:
-            Plotter(lsystem)
+            Plotter(lsystem, 90)
 
     def test_pushdown_tree2(self):
         lsystem = LSystem.parse('''
@@ -99,4 +99,4 @@ class TestTask1a(unittest.TestCase):
             X -> F[+X]F[-X]+X''')
         self.assertEqual(lsystem.apply(), 'F[+X]F[-X]+X')
         if self.VISUAL:
-            Plotter(lsystem)
+            Plotter(lsystem, 90)
