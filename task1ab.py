@@ -198,6 +198,7 @@ class Plotter(t.Turtle):
     def rotate(self):
         self.sc.tracer(False)
         self.ANGLE += 90
+        self.ANGLE %= 360
         self.clear()
         if self.rtr.get():
             self.draw()
