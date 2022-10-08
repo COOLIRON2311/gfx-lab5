@@ -1,5 +1,5 @@
 import unittest
-from task1a import LSystem, Plotter
+from task1ab import LSystem, Plotter
 
 
 class TestTask1a(unittest.TestCase):
@@ -92,11 +92,56 @@ class TestTask1a(unittest.TestCase):
         if self.VISUAL:
             Plotter(lsystem, 90)
 
-    def test_pushdown_tree2(self):
+    def test_pushdown_tree0(self):
         lsystem = LSystem.parse('''
             F 20 X
             F ->  FF
             X -> F[+X]F[-X]+X''')
         self.assertEqual(lsystem.apply(), 'F[+X]F[-X]+X')
+        if self.VISUAL:
+            Plotter(lsystem, 90)
+
+    def test_pushdown_tree1(self):
+        lsystem = LSystem.parse('''
+            F 22 F
+            F -> FF-[-F+F+F]+[+F-F-F]''')
+        self.assertEqual(lsystem.apply(), 'FF-[-F+F+F]+[+F-F-F]')
+        if self.VISUAL:
+            Plotter(lsystem, 90)
+
+    def test_pushdown_tree2(self):
+        lsystem = LSystem.parse('''
+            F 20 X
+            F -> FF
+            X -> F[+X]F[-X]+X''')
+        self.assertEqual(lsystem.apply(), 'F[+X]F[-X]+X')
+        if self.VISUAL:
+            Plotter(lsystem, 90)
+
+    def test_pushdown_tree3(self):
+        lsystem = LSystem.parse('''
+            F 22.5 X
+            F -> FF
+            X -> F-[[X]+X]+F[+FX]-X''')
+        self.assertEqual(lsystem.apply(), 'F-[[X]+X]+F[+FX]-X')
+        if self.VISUAL:
+            Plotter(lsystem, 90)
+
+    def test_mosaic(self):
+        lsystem = LSystem.parse('''
+            F 60 X
+            F -> F
+            X -> [-F+F[Y]+F][+F-F[X]-F]
+            Y -> [-F+F[Y]+F][+F-F-F]''')
+        self.assertEqual(lsystem.apply(), '[-F+F[Y]+F][+F-F[X]-F]')
+        if self.VISUAL:
+            Plotter(lsystem)
+
+    def test_pushdown_color_tree(self):
+        # TODO: fix angle
+        lsystem = LSystem.parse('''
+            F 0..45 X
+            X -> F[@[-X]+X]''')
+        self.assertEqual(lsystem.apply(), 'F[@[-X]+X]')
         if self.VISUAL:
             Plotter(lsystem, 90)

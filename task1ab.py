@@ -1,16 +1,21 @@
 from random import randint
 import turtle as t
 import tkinter as tk
-from functools import cache
+from functools import lru_cache
 
+# import pyjion
+# pyjion.enable()
+
+Color = 'tuple[int, int, int]'
+Angle = 'float | tuple'
 
 class LSystem:
     atoms: set  # алфавит
     axiom: str  # направление
     rules: list  # правила вида A -> B
-    angle: float | tuple  # угол поворота в градусах
+    angle: Angle  # угол поворота в градусах
 
-    def __init__(self, atoms: set, axiom: str, rules: list, angle: float):
+    def __init__(self, atoms: set, axiom: str, rules: list, angle: Angle):
         self.atoms = atoms
         self.axiom = axiom
         self.rules = rules
@@ -41,7 +46,7 @@ class LSystem:
             s += f'{key} -> {value}\n'
         return s
 
-    @cache
+    @lru_cache(maxsize=None)
     def apply(self, n: int = 1) -> str:
         # print(self, n)
         state = self.axiom
@@ -65,32 +70,41 @@ class Plotter(t.Turtle):
     ANGLE: int
     sc: t._Screen
     lsystem: LSystem
-    win: tk.Toplevel
+    win: 'tk.Toplevel | tk.Tk'
     canvas: t.TurtleScreen
-    stack: list[tuple[float, float, float]]
+    stack: 'list[tuple[float, float, float]]'
     ln: int = 10
     x: int = 0
     y: int = 0
     n: int = 1
+    col: Color = (0, 0, 0)
+    penwidth: int = 4
 
     def __init__(self, lsystem: LSystem, angle: int = 0):
         self.lsystem = lsystem
         super().__init__()
         self.stack = []
         self.sc = t.Screen()
+        self.sc.colormode(255)
+        self.sc.bgcolor(255,250,205)
         self.speed(0)
         self.ANGLE = angle
+        self.rtr = tk.BooleanVar(value=True)
         self.win = self.sc.getcanvas().winfo_toplevel()
         self.bbox = tk.Frame(self.win)
-        self.button1 = tk.Button(self.bbox, text='Draw', command=self.draw, width=30)
+        self.button1 = tk.Button(self.bbox, text='Draw', command=self.fast_draw, width=30)
         self.button2 = tk.Button(self.bbox, text='Clear', command=self.clear, width=30)
+        self.button3 = tk.Button(self.bbox, text='Color Draw', command=self.col_draw, width=30)
+        self.check = tk.Checkbutton(self.bbox, text='Real-time rendering', variable=self.rtr, onvalue=True, offvalue=False)
         self.scale1 = tk.Scale(self.win, from_=-2000, to=2000, orient=tk.HORIZONTAL, command=self.set_x, label='X')
         self.scale2 = tk.Scale(self.win, from_=-2000, to=2000, orient=tk.VERTICAL, command=self.set_y, label='Y')
-        self.scale3 = tk.Scale(self.win, from_=0, to=7, orient=tk.HORIZONTAL, command=self.set_n, label='N')
+        self.scale3 = tk.Scale(self.win, from_=0, to=10, orient=tk.HORIZONTAL, command=self.set_n, label='N')
         self.scale4 = tk.Scale(self.win, from_=1, to=100, orient=tk.HORIZONTAL, command=self.set_ln, label='Zoom')
         self.bbox.pack(side=tk.LEFT, padx=5, pady=5, fill=tk.X)
-        self.button1.pack(padx=50, pady=5)
-        self.button2.pack(padx=50, pady=5)
+        self.button1.pack(padx=50)
+        self.button2.pack(padx=50)
+        self.button3.pack(padx=50)
+        self.check.pack(padx=50)
         self.scale2.pack(side=tk.RIGHT)
         self.scale1.pack(side=tk.RIGHT)
         self.scale4.pack(side=tk.RIGHT)
@@ -129,41 +143,103 @@ class Plotter(t.Turtle):
                 self.setheading(h)
                 self.pendown()
 
+    def tint(self, c: Color, _t: float) -> Color:
+        r = int(c[0] + (255 - c[0]) * _t)
+        g = int(c[1] + (255 - c[1]) * _t)
+        b = int(c[2] + (255 - c[2]) * _t)
+        return (r, g, b)
+
+    def _col_draw(self):
+        # TODO: wrong angle, fix it
+        self.position()
+        state = self.lsystem.apply(self.n)
+        col = self.col
+        pw = self.penwidth
+        ln = self.ln
+
+        self.pensize(pw)
+        self.pencolor(col)
+        for atom in state:
+            if atom in self.lsystem.atoms:
+                self.forward(ln)
+            elif atom == '+':
+                if isinstance(self.lsystem.angle, tuple):
+                    angle = randint(*self.lsystem.angle)
+                else:
+                    angle = self.lsystem.angle
+                self.left(angle)
+            elif atom == '-':
+                if isinstance(self.lsystem.angle, tuple):
+                    angle = randint(*self.lsystem.angle)
+                else:
+                    angle = self.lsystem.angle
+                self.right(angle)
+            elif atom == '[':
+                self.stack.append((self.xcor(), self.ycor(), self.heading(), col, pw, ln))
+            elif atom == ']':
+                x, y, h, col, pw, ln = self.stack.pop()
+                self.penup()
+                self.goto(x, y)
+                self.setheading(h)
+                self.pensize(pw)
+                self.pencolor(col)
+                self.pendown()
+            elif atom == '@':
+                pw *= 0.8
+                ln *= 0.8
+                col = self.tint(col, 0.2)
+
     def position(self):
         self.penup()
         self.goto(self.x, self.y)
         self.setheading(self.ANGLE)
         self.pendown()
 
-    def clear(self, *_):
+    def fast_draw(self):
+        self.sc.tracer(False)
+        self.clear()
+        self.draw()
+        self.sc.tracer(True)
+
+    def col_draw(self):
+        self.sc.tracer(False)
+        self.clear()
+        self._col_draw()
+        self.sc.tracer(True)
+
+    def clear(self):
         self.reset()
 
     def set_ln(self, value):
         self.sc.tracer(False)
         self.ln = int(value)
         self.clear()
-        self.draw()
+        if self.rtr.get():
+            self.draw()
         self.sc.tracer(True)
 
     def set_x(self, value):
         self.sc.tracer(False)
         self.x = int(value)
         self.clear()
-        self.draw()
+        if self.rtr.get():
+            self.draw()
         self.sc.tracer(True)
 
     def set_y(self, value):
         self.sc.tracer(False)
         self.y = int(value)
         self.clear()
-        self.draw()
+        if self.rtr.get():
+            self.draw()
         self.sc.tracer(True)
 
     def set_n(self, value):
         self.sc.tracer(False)
         self.n = int(value)
         self.clear()
-        self.draw()
+        if self.rtr.get():
+            self.draw()
         self.sc.tracer(True)
 
 
