@@ -138,7 +138,6 @@ class TestTask1a(unittest.TestCase):
             Plotter(lsystem)
 
     def test_pushdown_color_tree(self):
-        # TODO: fix angle
         lsystem = LSystem.parse('''
             F 0..45 X
             X -> F[@[-X]+X]''')

@@ -6,8 +6,9 @@ from functools import lru_cache
 # import pyjion
 # pyjion.enable()
 
-Color = 'tuple[int, int, int]'
-Angle = 'float | tuple'
+Color = tuple[int, int, int]
+Angle = float | tuple
+
 
 class LSystem:
     atoms: set  # алфавит
@@ -46,7 +47,7 @@ class LSystem:
             s += f'{key} -> {value}\n'
         return s
 
-    @lru_cache(maxsize=None)
+    @lru_cache(maxsize=16)
     def apply(self, n: int = 1) -> str:
         # print(self, n)
         state = self.axiom
@@ -70,15 +71,15 @@ class Plotter(t.Turtle):
     ANGLE: int
     sc: t._Screen
     lsystem: LSystem
-    win: 'tk.Toplevel | tk.Tk'
+    win: tk.Toplevel | tk.Tk
     canvas: t.TurtleScreen
-    stack: 'list[tuple[float, float, float]]'
+    stack: list[tuple]
     ln: int = 10
     x: int = 0
     y: int = 0
     n: int = 1
     col: Color = (0, 0, 0)
-    penwidth: int = 4
+    pensz: int = 4
 
     def __init__(self, lsystem: LSystem, angle: int = 0):
         self.lsystem = lsystem
@@ -86,7 +87,7 @@ class Plotter(t.Turtle):
         self.stack = []
         self.sc = t.Screen()
         self.sc.colormode(255)
-        self.sc.bgcolor(255,250,205)
+        self.sc.bgcolor(255, 250, 205)
         self.speed(0)
         self.ANGLE = angle
         self.rtr = tk.BooleanVar(value=True)
@@ -95,16 +96,19 @@ class Plotter(t.Turtle):
         self.button1 = tk.Button(self.bbox, text='Draw', command=self.fast_draw, width=30)
         self.button2 = tk.Button(self.bbox, text='Clear', command=self.clear, width=30)
         self.button3 = tk.Button(self.bbox, text='Color Draw', command=self.col_draw, width=30)
-        self.check = tk.Checkbutton(self.bbox, text='Real-time rendering', variable=self.rtr, onvalue=True, offvalue=False)
-        self.scale1 = tk.Scale(self.win, from_=-2000, to=2000, orient=tk.HORIZONTAL, command=self.set_x, label='X')
-        self.scale2 = tk.Scale(self.win, from_=-2000, to=2000, orient=tk.VERTICAL, command=self.set_y, label='Y')
-        self.scale3 = tk.Scale(self.win, from_=0, to=10, orient=tk.HORIZONTAL, command=self.set_n, label='N')
+        self.check = tk.Checkbutton(self.bbox, text='Real-time rendering',
+                                    variable=self.rtr, onvalue=True, offvalue=False)
+        self.button4 = tk.Button(self.bbox, text='+90°', command=self.rotate, height=6)
+        self.scale1 = tk.Scale(self.win, from_=-1000, to=1000, orient=tk.HORIZONTAL, command=self.set_x, label='X')
+        self.scale2 = tk.Scale(self.win, from_=-1000, to=1000, orient=tk.VERTICAL, command=self.set_y, label='Y')
+        self.scale3 = tk.Scale(self.win, from_=0, to=13, orient=tk.HORIZONTAL, command=self.set_n, label='N')
         self.scale4 = tk.Scale(self.win, from_=1, to=100, orient=tk.HORIZONTAL, command=self.set_ln, label='Zoom')
-        self.bbox.pack(side=tk.LEFT, padx=5, pady=5, fill=tk.X)
-        self.button1.pack(padx=50)
-        self.button2.pack(padx=50)
-        self.button3.pack(padx=50)
-        self.check.pack(padx=50)
+        self.bbox.pack(side=tk.LEFT, padx=5, pady=5)
+        self.button4.pack(side=tk.LEFT, padx=5)
+        self.button1.pack(padx=5)
+        self.button2.pack(padx=5)
+        self.button3.pack(padx=5)
+        self.check.pack(padx=5)
         self.scale2.pack(side=tk.RIGHT)
         self.scale1.pack(side=tk.RIGHT)
         self.scale4.pack(side=tk.RIGHT)
@@ -144,17 +148,17 @@ class Plotter(t.Turtle):
                 self.pendown()
 
     def tint(self, c: Color, _t: float) -> Color:
+        """Tint a color by a factor of t, where 0 <= t <= 1"""
         r = int(c[0] + (255 - c[0]) * _t)
         g = int(c[1] + (255 - c[1]) * _t)
         b = int(c[2] + (255 - c[2]) * _t)
         return (r, g, b)
 
     def _col_draw(self):
-        # TODO: wrong angle, fix it
         self.position()
         state = self.lsystem.apply(self.n)
         col = self.col
-        pw = self.penwidth
+        pw = self.pensz
         ln = self.ln
 
         self.pensize(pw)
@@ -187,7 +191,17 @@ class Plotter(t.Turtle):
             elif atom == '@':
                 pw *= 0.8
                 ln *= 0.8
-                col = self.tint(col, 0.2)
+                col = self.tint(col, 0.1)
+                self.pensize(pw)
+                self.pencolor(col)
+
+    def rotate(self):
+        self.sc.tracer(False)
+        self.ANGLE += 90
+        self.clear()
+        if self.rtr.get():
+            self.draw()
+        self.sc.tracer(True)
 
     def position(self):
         self.penup()
@@ -237,6 +251,8 @@ class Plotter(t.Turtle):
     def set_n(self, value):
         self.sc.tracer(False)
         self.n = int(value)
+        if self.n > 9:
+            self.rtr.set(False)
         self.clear()
         if self.rtr.get():
             self.draw()
