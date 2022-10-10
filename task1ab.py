@@ -90,14 +90,14 @@ class Plotter(t.Turtle):
         self.sc.bgcolor(255, 250, 205)
         self.speed(0)
         self.ANGLE = angle
-        self.rtr = tk.BooleanVar(value=True)
+        self.rts = tk.BooleanVar(value=True)
         self.win = self.sc.getcanvas().winfo_toplevel()
         self.bbox = tk.Frame(self.win)
-        self.button1 = tk.Button(self.bbox, text='Draw', command=self.fast_draw, width=30)
+        self.button1 = tk.Button(self.bbox, text='Sketch', command=self.sketch, width=30)
         self.button2 = tk.Button(self.bbox, text='Clear', command=self.clear, width=30)
-        self.button3 = tk.Button(self.bbox, text='Color Draw', command=self.col_draw, width=30)
-        self.check = tk.Checkbutton(self.bbox, text='Real-time rendering',
-                                    variable=self.rtr, onvalue=True, offvalue=False)
+        self.button3 = tk.Button(self.bbox, text='Render', command=self.render, width=30)
+        self.check = tk.Checkbutton(self.bbox, text='Real-time sketching',
+                                    variable=self.rts, onvalue=True, offvalue=False)
         self.button4 = tk.Button(self.bbox, text='+90°', command=self.rotate, height=6)
         self.scale1 = tk.Scale(self.win, from_=-1000, to=1000, orient=tk.HORIZONTAL, command=self.set_x, label='X')
         self.scale2 = tk.Scale(self.win, from_=-1000, to=1000, orient=tk.VERTICAL, command=self.set_y, label='Y')
@@ -154,7 +154,7 @@ class Plotter(t.Turtle):
         b = int(c[2] + (255 - c[2]) * _t)
         return (r, g, b)
 
-    def _col_draw(self):
+    def col_draw(self):
         self.position()
         state = self.lsystem.apply(self.n)
         col = self.col
@@ -200,7 +200,7 @@ class Plotter(t.Turtle):
         self.ANGLE += 90
         self.ANGLE %= 360
         self.clear()
-        if self.rtr.get():
+        if self.rts.get():
             self.draw()
         self.sc.tracer(True)
 
@@ -210,16 +210,16 @@ class Plotter(t.Turtle):
         self.setheading(self.ANGLE)
         self.pendown()
 
-    def fast_draw(self):
+    def sketch(self):
         self.sc.tracer(False)
         self.clear()
         self.draw()
         self.sc.tracer(True)
 
-    def col_draw(self):
+    def render(self):
         self.sc.tracer(False)
         self.clear()
-        self._col_draw()
+        self.col_draw()
         self.sc.tracer(True)
 
     def clear(self):
@@ -229,7 +229,7 @@ class Plotter(t.Turtle):
         self.sc.tracer(False)
         self.ln = int(value)
         self.clear()
-        if self.rtr.get():
+        if self.rts.get():
             self.draw()
         self.sc.tracer(True)
 
@@ -237,7 +237,7 @@ class Plotter(t.Turtle):
         self.sc.tracer(False)
         self.x = int(value)
         self.clear()
-        if self.rtr.get():
+        if self.rts.get():
             self.draw()
         self.sc.tracer(True)
 
@@ -245,7 +245,7 @@ class Plotter(t.Turtle):
         self.sc.tracer(False)
         self.y = int(value)
         self.clear()
-        if self.rtr.get():
+        if self.rts.get():
             self.draw()
         self.sc.tracer(True)
 
@@ -253,9 +253,9 @@ class Plotter(t.Turtle):
         self.sc.tracer(False)
         self.n = int(value)
         if self.n > 9:
-            self.rtr.set(False)
+            self.rts.set(False)
         self.clear()
-        if self.rtr.get():
+        if self.rts.get():
             self.draw()
         self.sc.tracer(True)
 
