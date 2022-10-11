@@ -193,7 +193,7 @@ class App(tk.Tk):
     shape_type: ShapeType
     selected_shape = None
     _spec_func_idx: int = 6
-    _shape_type_idx: int = 1
+    _shape_type_idx: int = 0
     rect_sel_p1: Point
     rect_sel_p2: Point
     tp: Point  # temporary point
@@ -204,7 +204,7 @@ class App(tk.Tk):
         self.geometry(f"{self.W}x{self.H}")
         self.resizable(0, 0)
         self.mode = Mode.PointDraw
-        self.shape_type = ShapeType.Line
+        self.shape_type = ShapeType.Point
         self.points = []
         self.lines = []
         self.polygons = []
