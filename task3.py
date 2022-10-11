@@ -142,6 +142,7 @@ class Line:
                 return Point(x1, y)
         return None
 
+
 @dataclass
 class Polygon:
     lines: list[Line]
@@ -191,7 +192,7 @@ class App(tk.Tk):
     polygons: list[Polygon]
     shape_type: ShapeType
     selected_shape = None
-    _spec_func_idx: int = 0
+    _spec_func_idx: int = 6
     _shape_type_idx: int = 1
     rect_sel_p1: Point
     rect_sel_p2: Point
@@ -266,7 +267,8 @@ class App(tk.Tk):
         self.bind("<F1>", self.debug)
         self.bind("<B1-Motion>", self.mouse_move)
         self.bind("<ButtonRelease-1>", self.mouse_release)
-        self.mainloop()
+        self.scroll('scroll', f'{self._spec_func_idx}', 'units')
+        # self.mainloop()
 
     def debug(self, *args):
         print(*args)
@@ -286,6 +288,7 @@ class App(tk.Tk):
         print()
 
     def scroll(self, *args):
+        # print(args)
         d = int(args[1])
         if 0 < self._spec_func_idx + d < len(SpecialFunctions):
             self._spec_func_idx += d
@@ -498,18 +501,18 @@ class App(tk.Tk):
                 center = self.lines[-1].center
                 phi = radians(90)
                 mat = np.array([
-                [cos(phi), -sin(phi), -center.x * cos(phi) + center.y * sin(phi) + center.x],
-                [sin(phi), cos(phi), -center.x * sin(phi) - center.y * cos(phi) + center.y],
-                [0, 0, 1]])
-                
+                    [cos(phi), -sin(phi), -center.x * cos(phi) + center.y * sin(phi) + center.x],
+                    [sin(phi), cos(phi), -center.x * sin(phi) - center.y * cos(phi) + center.y],
+                    [0, 0, 1]])
+
                 p1 = self.lines[-1].p1
-                p2 = self.lines[-1].p2               
-                
-                l1 = Line(p1,center)
-                l2 = Line(center,p2)
+                p2 = self.lines[-1].p2
+
+                l1 = Line(p1, center)
+                l2 = Line(center, p2)
                 l1.transform(mat)
                 l2.transform(mat)
-                
+
                 self.redraw(delete_points=False)
                 self.after(1, self.focus_force)
 
@@ -519,70 +522,69 @@ class App(tk.Tk):
                     return
                 self.lines[-1].highlight(self.canvas, 500)
                 self.lines[-2].highlight(self.canvas, 500)
-                # if self.are_intersected(self.lines[-2], self.lines[-1]):
-                #     mb.showinfo("Result", "Lines are intersected")
-                # TODO: specify point of intersection
                 r = self.lines[-1].intersection(self.lines[-2])
                 if r:
                     mb.showinfo("Result", f"Lines intersect at {r}")
                 else:
                     mb.showinfo("Result", "Lines are NOT intersected")
-                    
+
             case SpecialFunctions.BezierCurve:
-                
-                for i in range(0,len(self.points),2):
-                    if i+3<len(self.points):
+                if len(self.points) < 4:
+                    mb.showwarning("Error", "Not enough points")
+                    return
+
+                self.redraw(delete_points=False)
+
+                for i in range(0, len(self.points), 2):
+                    if i+3 < len(self.points):
                         p0 = self.points[i]
                         p1 = self.points[i+1]
                         p2 = self.points[i+2]
                         p3 = self.points[i+3]
-                        l1 = Line(p0,p1)
-                        l2 = Line(p2,p3)
+                        l1 = Line(p0, p1)
+                        l2 = Line(p2, p3)
                         last = l2.center
                         if i == 0:
-                            self.cubeBezierCurve(p0,p1,p2,last)
+                            self.cubeBezierCurve(p0, p1, p2, last)
                         else:
                             if p3 == self.points[-1]:
-                                self.cubeBezierCurve(l1.center,p1,p2,p3)
+                                self.cubeBezierCurve(l1.center, p1, p2, p3)
                             else:
-                                self.cubeBezierCurve(l1.center,p1,p2,last)
-                if len(self.points)%2 != 0:
-                        p0 = last
-                        p1 = self.points[-2]
-                        p3 = self.points[-1]
-                        l = Line(p1,p3)
-                        self.cubeBezierCurve(last,p1,l.center,p3)
-                
-                
+                                self.cubeBezierCurve(l1.center, p1, p2, last)
+                if len(self.points) % 2 != 0:
+                    p0 = last
+                    p1 = self.points[-2]
+                    p3 = self.points[-1]
+                    l = Line(p1, p3)
+                    self.cubeBezierCurve(last, p1, l.center, p3)
 
-
-        self.mode = Mode.SelectShape
+        self.mode = Mode.PointDraw
         self.label2.config(text=f"Mode: {self.mode}")
 
-    def cubeBezierCurve(self,p0,p1,p2,p3):
+    def cubeBezierCurve(self, p0: Point, p1: Point, p2: Point, p3: Point):
         matB = np.array([
-            [-1,3,-3,1],
-            [3,-6,3,0],
-            [-3,3,0,0],
-            [1,0,0,0]
+            [-1, 3, -3, 1],
+            [3, -6, 3, 0],
+            [-3, 3, 0, 0],
+            [1, 0, 0, 0]
         ])
-        
-        matX = np.array([p0.x,p1.x,p2.x,p3.x])
-        matY = np.array([p0.y,p1.y,p2.y,p3.y])
-        
-        appmatX = np.matmul(matB,matX)
-        appmatY = np.matmul(matB,matY)
-        
+
+        matX = np.array([p0.x, p1.x, p2.x, p3.x])
+        matY = np.array([p0.y, p1.y, p2.y, p3.y])
+
+        appmatX = np.matmul(matB, matX)
+        appmatY = np.matmul(matB, matY)
+
         prevPoint = p0
-        
-        for t in np.arange(0,1,0.001):
-            tempmat = np.array([np.power(t,3),np.power(t,2),t,1])
-            X = np.matmul(tempmat,appmatX)
-            Y = np.matmul(tempmat,appmatY)
-            cPoint = Point(X,Y)
-            nl = Line(prevPoint,cPoint)
+
+        for t in np.arange(0, 1, 0.001):
+            tempmat = np.array([np.power(t, 3), np.power(t, 2), t, 1])
+            X = np.matmul(tempmat, appmatX)
+            Y = np.matmul(tempmat, appmatY)
+            cPoint = Point(X, Y)
+            nl = Line(prevPoint, cPoint)
             nl.draw(self.canvas)
-            prevPoint = cPoint        
+            prevPoint = cPoint
 
     def on_left(self, line: Line, p: Point):
         o = line.p1
@@ -593,37 +595,23 @@ class App(tk.Tk):
 
         return s_d > 0
 
-    def are_intersected(self, line1: Line, line2: Line):
+    def are_intersected(self, l1: Line, l2: Line):
+        denum = (l1.p1.x - l1.p2.x)*(l2.p1.y-l2.p2.y) - (l1.p1.y-l1.p2.y)*(l2.p1.x-l2.p2.x)
+        if denum == 0:
+            return None
 
-        if ((line1.p1.x - line1.p2.x)*(line2.p1.y-line2.p2.y) - (line1.p1.y-line1.p2.y)*(line2.p1.x-line2.p2.x)) == 0:
-            return False
+        t = ((l1.p1.x - l2.p1.x)*(l2.p1.y-l2.p2.y) - (l1.p1.y-l2.p1.y)*(l2.p1.x-l2.p2.x)) / denum
 
-        t = ((line1.p1.x - line2.p1.x)*(line2.p1.y-line2.p2.y) - (line1.p1.y-line2.p1.y)*(line2.p1.x-line2.p2.x)) / \
-            ((line1.p1.x - line1.p2.x)*(line2.p1.y-line2.p2.y) - (line1.p1.y-line1.p2.y)*(line2.p1.x-line2.p2.x))
+        point = Point(l1.p1.x+t*(l1.p2.x-l1.p1.x), l1.p1.y+t*(l1.p2.y-l1.p1.y))
 
-        point = Point(line1.p1.x+t*(line1.p2.x-line1.p1.x), line1.p1.y+t*(line1.p2.y-line1.p1.y))
+        lowx1, highx1 = sorted([l1.p1.x, l1.p2.x])
+        lowy1, highy1 = sorted([l1.p1.y, l1.p2.y])
+        lowx2, highx2 = sorted([l2.p1.x, l2.p2.x])
+        lowy2, highy2 = sorted([l2.p1.y, l2.p2.y])
 
-        sx1 = [line1.p1.x, line1.p2.x]
-        sx1.sort()
-        lowx1 = sx1[0]
-        highx1 = sx1[-1]
-
-        sy1 = [line1.p1.y, line1.p2.y]
-        sy1.sort()
-        lowy1 = sy1[0]
-        highy1 = sy1[-1]
-
-        sx2 = [line2.p1.x, line2.p2.x]
-        sx2.sort()
-        lowx2 = sx2[0]
-        highx2 = sx2[-1]
-
-        sy2 = [line2.p1.y, line2.p2.y]
-        sy2.sort()
-        lowy2 = sy2[0]
-        highy2 = sy2[-1]
-
-        return point.x >= lowx1 and point.x <= highx1 and point.y >= lowy1 and point.y <= highy1 and point.x >= lowx2 and point.x <= highx2 and point.y >= lowy2 and point.y <= highy2
+        if lowx1 <= point.x <= highx1 and lowy1 <= point.y <= highy1 and lowx2 <= point.x <= highx2 and lowy2 <= point.y <= highy2:
+            return point
+        return None
 
     def _in_point(self, p: Point, x: int, y: int) -> bool:
         return (x - p.x) ** 2 + (y - p.y) ** 2 <= self.R ** 2
