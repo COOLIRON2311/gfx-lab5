@@ -1,4 +1,3 @@
-from asyncio.windows_events import NULL
 import tkinter as tk
 from dataclasses import dataclass
 from enum import Enum
@@ -200,7 +199,7 @@ class App(tk.Tk):
 
     def __init__(self):
         super().__init__()
-        self.title("Affine Transformation")
+        self.title("ManualCAD")
         self.geometry(f"{self.W}x{self.H}")
         self.resizable(0, 0)
         self.mode = Mode.PointDraw
