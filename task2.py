@@ -2,9 +2,11 @@ from queue import Queue
 import tkinter as tk
 from dataclasses import dataclass
 from random import randint
-
-
 import numpy as np
+
+# import pyjion
+# pyjion.enable()
+
 
 @dataclass
 class Point:
@@ -105,7 +107,8 @@ class App(tk.Tk):
         self.canvas = tk.Canvas(self, width=self.W, height=self.H-70, bg="white")
         self.scales = tk.Frame()
         self.scale_1 = tk.Scale(self.scales, from_=0, to_=10, orient=tk.HORIZONTAL, label='Iterations', command=self._n)
-        self.scale_2 = tk.Scale(self.scales, from_=0, to_=2, resolution=0.1, orient=tk.HORIZONTAL, label='Noise', command=self._noise)
+        self.scale_2 = tk.Scale(self.scales, from_=0, to_=2, resolution=0.1,
+                                orient=tk.HORIZONTAL, label='Noise', command=self._noise)
         self.scale_3 = tk.Scale(self.scales, from_=0, to_=100, orient=tk.HORIZONTAL, label='Tear', command=self._tear)
         self.canvas.pack()
         self.scales.pack()
@@ -115,11 +118,11 @@ class App(tk.Tk):
         self.scale_1.set(self.n)
         self.scale_2.set(self.noise)
         self.scale_3.set(self.tear)
-    
+
     def reset(self, *_):
         self.canvas.delete('all')
         self.lines = [self.start.copy()]
-    
+
     def draw(self):
         for l in self.lines:
             l.draw(self.canvas)
@@ -129,13 +132,13 @@ class App(tk.Tk):
         self.reset()
         self.displace()
         self.draw()
-    
+
     def _noise(self, r: str):
         self.noise = float(r)
         self.reset()
         self.displace()
         self.draw()
-    
+
     def _tear(self, t: str):
         self.tear = int(t)
         self.reset()
@@ -164,7 +167,7 @@ class App(tk.Tk):
                 c = i.center
                 c1 = Point(c.x, c.y + self.noise * randint(-self.tear, self.tear))
                 a = Line(i.p1, c1)
-                b = Line(c1, i.p2) 
+                b = Line(c1, i.p2)
                 q.put(a)
                 q.put(b)
                 lines.append(a)
