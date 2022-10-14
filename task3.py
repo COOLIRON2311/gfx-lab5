@@ -544,7 +544,10 @@ class App(tk.Tk):
                         l2 = Line(p2, p3)
                         last = l2.center
                         if i == 0:
-                            self.cubeBezierCurve(p0, p1, p2, last)
+                            if p3 == self.points[-1]:
+                                self.cubeBezierCurve(p0, p1, p2, p3)
+                            else:
+                                self.cubeBezierCurve(p0, p1, p2, last)
                         else:
                             if p3 == self.points[-1]:
                                 self.cubeBezierCurve(l1.center, p1, p2, p3)
